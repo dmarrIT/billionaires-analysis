@@ -60,6 +60,8 @@ con.commit()
 
 # ========== Answer questions ==========
 
+#TODO restructure questions and queries to account for the fact that this is a top ten list with duplicate names, sources, etc. over multiple years
+
 # What is the percentage breakdown of billionaires by nationality in this data set?
 
 query = """
@@ -70,13 +72,32 @@ ORDER BY total_billion_usd DESC
 """
 
 df_by_nationality = pd.read_sql_query(query, con)
+df_by_nationality["pct_of_global"] = (df_by_nationality["total_billion_usd"] / df_by_nationality["total_billion_usd"].sum()) * 100
 print(df_by_nationality)
 
-# What is the mean, median, and mode net worth in this data set?
+# What is the mean and median net worth in this data set?
 
-# What is the mean, median, and mode age in this data set?
+mean_net_worth = cleaned_data["net_worth_billion_usd"].mean()
+median_net_worth = cleaned_data["net_worth_billion_usd"].median()
+print(mean_net_worth, median_net_worth)
+
+# What is the mean and median age in this data set?
+
+mean_age = cleaned_data["age"].mean()
+median_age = cleaned_data["age"].median()
+print(mean_age, median_age)
 
 # Which what are the top five sources of wealth by net worth in this data set?
+
+query = """
+SELECT source_wealth, SUM(net_worth_billion_usd) as total_billion_usd
+FROM billionaires
+GROUP BY source_wealth
+ORDER BY total_billion_usd DESC
+"""
+
+df_by_source = pd.read_sql_query(query, con)
+print(df_by_source)
 
 # Who are the top three trending billionaires?
 
