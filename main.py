@@ -47,7 +47,7 @@ con = sqlite3.connect("./db/spotify.db")
 
 # What is the mean, median, and mode age in this data set?
 
-# Which what are the top ten sources of wealth by net worth in this data set?
+# Which what are the top five sources of wealth by net worth in this data set?
 
 # What are the top three trending billionaires?
 
