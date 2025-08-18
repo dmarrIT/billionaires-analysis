@@ -148,3 +148,16 @@ df_top_3_trending = pd.read_sql_query(query, con)
 print(df_top_3_trending)
 
 # =========== Visualize insights ==========
+
+# plot net worth share by nationality
+df_by_nationality.set_index("nationality")["total_billion_usd"].plot(
+    kind="pie",
+    figsize=(8, 8),
+    autopct="%.1f%%",
+    startangle=90,
+    legend=False,
+    ylabel=""
+)
+plt.title(f"Share of Billionaire Net Worth by Nationality ({latest_year})")
+pathlib.Path("./plots").mkdir(parents=True, exist_ok=True)
+plt.savefig("./plots/net_worth_by_nationality.png", dpi=300)
