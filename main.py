@@ -2,6 +2,7 @@ import pandas as pd
 import pathlib
 import matplotlib.pyplot as plt
 import sqlite3
+import matplotlib.ticker as ticker
 
 # ========== Read data =========
 
@@ -161,3 +162,76 @@ df_by_nationality.set_index("nationality")["total_billion_usd"].plot(
 plt.title(f"Share of Billionaire Net Worth by Nationality ({latest_year})")
 pathlib.Path("./plots").mkdir(parents=True, exist_ok=True)
 plt.savefig("./plots/net_worth_by_nationality.png", dpi=300)
+
+
+# plot mean and median net worth
+plt.figure(figsize=(10, 6))
+plt.hist(snapshot_df["net_worth_billion_usd"].dropna(), bins=30, alpha=0.7, color="skyblue", edgecolor="black")
+
+# Add vertical lines
+plt.axvline(mean_net_worth, color="red", linestyle="dashed", linewidth=2, label=f"Mean: {mean_net_worth:.1f}")
+plt.axvline(median_net_worth, color="green", linestyle="solid", linewidth=2, label=f"Median: {median_net_worth:.1f}")
+
+plt.title(f"Distribution of Net Worths ({latest_year})")
+plt.xlabel("Net Worth (Billion USD)")
+plt.ylabel("Number of Billionaires")
+plt.legend()
+plt.savefig("./plots/net_worth_distribution.png", dpi=300)
+
+
+# plot mean and median age
+plt.figure(figsize=(6, 6))
+plt.boxplot(snapshot_df["age"].dropna(), vert=False)
+plt.title(f"Age Spread ({latest_year})")
+plt.xlabel("Age (Years)")
+
+# Add mean marker
+plt.axvline(mean_age, color="red", linestyle="dashed", linewidth=2, label=f"Mean: {mean_age:.1f}")
+plt.axvline(median_age, color="green", linestyle="solid", linewidth=2, label=f"Median: {median_age:.1f}")
+plt.legend()
+plt.savefig("./plots/age_boxplot.png", dpi=300)
+
+
+# plot top sources of wealth
+plt.figure(figsize=(10, 6))
+plt.bar(df_by_source["source_wealth"], df_by_source["total_billion_usd"], color="skyblue", edgecolor="black")
+
+plt.title(f"Top Sources of Wealth by Net Worth ({latest_year})")
+plt.xlabel("Source of Wealth")
+plt.ylabel("Total Net Worth (Billion USD)")
+plt.xticks(rotation=45, ha="right")
+
+plt.tight_layout()
+plt.savefig("./plots/net_worth_by_source.png", dpi=300)
+
+
+# plot top trending
+# get time series data for the top 3 trending billionaires
+names = df_top_3_trending["name"].tolist()
+query = f"""
+SELECT name, year, net_worth_billion_usd
+FROM billionaires
+WHERE name IN ({",".join(['?']*len(names))})
+ORDER BY year
+"""
+df_trending_timeseries = pd.read_sql_query(query, con, params=names)
+
+# plot line chart
+plt.figure(figsize=(10, 6))
+for name in names:
+    person_df = df_trending_timeseries[df_trending_timeseries["name"] == name]
+    plt.plot(person_df["year"], person_df["net_worth_billion_usd"], marker="o", label=name)
+
+plt.title("Top 3 Trending Billionaires (Net Worth Over Time)")
+plt.xlabel("Year")
+plt.ylabel("Net Worth (Billion USD)")
+plt.legend()
+plt.grid(True)
+
+# force integer ticks on x-axis
+plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+
+plt.tight_layout()
+plt.savefig("./plots/top_trending_billionaires.png", dpi=300)
+
+con.close()
